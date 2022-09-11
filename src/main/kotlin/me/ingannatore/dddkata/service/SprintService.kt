@@ -25,7 +25,7 @@ class SprintService(
 ) {
     @PostMapping("sprint")
     fun createSprint(@RequestBody dto: CreateSprintRequest): Long {
-        val product = productRepository.findById(dto.productId).orElseThrow { EntityNotFoundException("No ${Product::class.simpleName} with id " + dto.productId) }
+        val product = getProductById(dto.productId)
         val sprint = Sprint(
             product = product,
             iteration = product.incrementAndGetIteration(),
@@ -37,38 +37,33 @@ class SprintService(
 
     @GetMapping("sprint/{sprintId}")
     fun getSprint(@PathVariable sprintId: Long): Sprint {
-        return sprintRepository.findById(sprintId).orElseThrow { EntityNotFoundException("No ${Sprint::class.simpleName} with id " + sprintId) }
+        return getSprintById(sprintId)
     }
 
     @PostMapping("sprint/{sprintId}/start")
     fun startSprint(@PathVariable sprintId: Long) {
-        val sprint = sprintRepository.findById(sprintId).orElseThrow { EntityNotFoundException("No ${Sprint::class.simpleName} with id " + sprintId) }
-        sprint.start()
+        getSprintById(sprintId).start()
     }
 
     @PostMapping("sprint/{sprintId}/end")
     fun endSprint(@PathVariable sprintId: Long) {
-        val sprint = sprintRepository.findById(sprintId).orElseThrow { EntityNotFoundException("No ${Sprint::class.simpleName} with id " + sprintId) }
-        sprint.end()
+        getSprintById(sprintId).end()
     }
 
     /*****************************  ITEMS IN SPRINT  */
     @PostMapping("sprint/{sprintId}/item")
     fun addItem(@PathVariable sprintId: Long, @RequestBody request: AddBacklogItemRequest): Long {
-        val sprint = sprintRepository.findById(sprintId).orElseThrow { EntityNotFoundException("No ${Sprint::class.simpleName} with id " + sprintId) }
-        val backlogItem = backlogItemRepository.findById(request.backlogId).orElseThrow { EntityNotFoundException("No ${BacklogItem::class.simpleName} with id " + request.backlogId) }
-        return sprint.addItem(backlogItem, request.fpEstimation)
+        return getSprintById(sprintId).addItem(getBacklogItemById(request.backlogId), request.fpEstimation)
     }
 
     @PostMapping("sprint/{sprintId}/item/{backlogId}/start")
     fun startItem(@PathVariable sprintId: Long, @PathVariable backlogId: Long) {
-        val sprint = sprintRepository.findById(sprintId).orElseThrow { EntityNotFoundException("No ${Sprint::class.simpleName} with id " + sprintId) }
-        sprint.startItem(backlogId)
+        getSprintById(sprintId).startItem(backlogId)
     }
 
     @PostMapping("sprint/{sprintId}/item/{backlogId}/complete")
     fun completeItem(@PathVariable sprintId: Long, @PathVariable backlogId: Long) {
-        val sprint = sprintRepository.findById(sprintId).orElseThrow { EntityNotFoundException("No ${Sprint::class.simpleName} with id " + sprintId) }
+        val sprint = getSprintById(sprintId)
         sprint.completeItem(backlogId)
 
         if (sprint.items.all { it.isDone() }) {
@@ -80,14 +75,27 @@ class SprintService(
 
     @PostMapping("sprint/{sprintId}/log-hours")
     fun logHours(@PathVariable sprintId: Long, @RequestBody request: LogHoursRequest) {
-        val sprint = sprintRepository.findById(sprintId).orElseThrow { EntityNotFoundException("No ${Sprint::class.simpleName} with id " + sprintId) }
-        sprint.logHours(request.backlogId, request.hours)
+        getSprintById(sprintId).logHours(request.backlogId, request.hours)
     }
 
     /*****************************  METRICS  */
     @GetMapping("sprint/{sprintId}/metrics")
     fun getSprintMetrics(@PathVariable sprintId: Long): SprintMetrics {
-        val sprint = sprintRepository.findById(sprintId).orElseThrow { EntityNotFoundException("No ${Sprint::class.simpleName} with id " + sprintId) }
-        return sprint.getMetrics()
+        return getSprintById(sprintId).getMetrics()
     }
+
+    private fun getProductById(id: Long): Product =
+        productRepository
+            .findById(id)
+            .orElseThrow { EntityNotFoundException("No ${Product::class.simpleName} with id $id") }
+
+    private fun getSprintById(id: Long): Sprint =
+        sprintRepository
+            .findById(id)
+            .orElseThrow { EntityNotFoundException("No ${Sprint::class.simpleName} with id $id") }
+
+    private fun getBacklogItemById(id: Long): BacklogItem =
+        backlogItemRepository
+            .findById(id)
+            .orElseThrow { EntityNotFoundException("No ${BacklogItem::class.simpleName} with id $id") }
 }
