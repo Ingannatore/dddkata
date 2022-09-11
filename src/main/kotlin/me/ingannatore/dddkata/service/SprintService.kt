@@ -44,7 +44,7 @@ class SprintService(
     @PostMapping("sprint/{sprintId}/start")
     fun startSprint(@PathVariable sprintId: Long) {
         val sprint = sprintRepository.findById(sprintId).orElseThrow { EntityNotFoundException("No ${Sprint::class.simpleName} with id " + sprintId) }
-        check(!(sprint.status !== Sprint.Status.CREATED))
+        check(sprint.isNew())
         sprint.startDate = LocalDate.now()
         sprint.status = Sprint.Status.STARTED
     }
@@ -52,7 +52,7 @@ class SprintService(
     @PostMapping("sprint/{sprintId}/end")
     fun endSprint(@PathVariable sprintId: Long) {
         val sprint = sprintRepository.findById(sprintId).orElseThrow { EntityNotFoundException("No ${Sprint::class.simpleName} with id " + sprintId) }
-        check(!(sprint.status !== Sprint.Status.STARTED))
+        check(sprint.isStarted())
         sprint.endDate = LocalDate.now()
         sprint.status = Sprint.Status.FINISHED
     }
@@ -62,7 +62,7 @@ class SprintService(
     fun addItem(@PathVariable sprintId: Long, @RequestBody request: AddBacklogItemRequest): Long {
         val backlogItem = backlogItemRepository.findById(request.backlogId).orElseThrow { EntityNotFoundException("No ${BacklogItem::class.simpleName} with id " + request.backlogId) }
         val sprint = sprintRepository.findById(sprintId).orElseThrow { EntityNotFoundException("No ${Sprint::class.simpleName} with id " + sprintId) }
-        check(!(sprint.status != Sprint.Status.CREATED)) { "Can only add items to Sprint before it starts" }
+        check(sprint.isNew()) { "Can only add items to Sprint before it starts" }
         backlogItem.sprint = sprint
         sprint.items.add(backlogItem)
         backlogItem.fpEstimation = request.fpEstimation
@@ -94,7 +94,7 @@ class SprintService(
     private fun checkSprintMatchesAndStarted(id: Long, backlogItem: BacklogItem) {
         require(backlogItem.sprint!!.id!! == id) { "item not in sprint" }
         val sprint = sprintRepository.findById(id).orElseThrow { EntityNotFoundException("No ${Sprint::class.simpleName} with id " + id) }
-        check(!(sprint.status !== Sprint.Status.STARTED)) { "Sprint not started" }
+        check(sprint.isStarted()) { "Sprint not started" }
     }
 
     @PostMapping("sprint/{sprintId}/log-hours")
@@ -109,7 +109,7 @@ class SprintService(
     @GetMapping("sprint/{sprintId}/metrics")
     fun getSprintMetrics(@PathVariable sprintId: Long): SprintMetrics {
         val sprint = sprintRepository.findById(sprintId).orElseThrow { EntityNotFoundException("No ${Sprint::class.simpleName} with id " + sprintId) }
-        check(!(sprint.status !== Sprint.Status.FINISHED))
+        check(sprint.isFinished())
         val doneItems: List<BacklogItem> = sprint.items
             .filter { it.status === BacklogItem.Status.DONE }
         val consumedHours = sprint.items.sumOf { it.hoursConsumed }

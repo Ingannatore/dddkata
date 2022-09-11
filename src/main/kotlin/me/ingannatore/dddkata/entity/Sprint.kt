@@ -33,4 +33,8 @@ class Sprint(
     enum class Status {
         CREATED, STARTED, FINISHED
     }
+
+    fun isNew(): Boolean = status == Status.CREATED
+    fun isStarted(): Boolean = status == Status.STARTED
+    fun isFinished(): Boolean = status == Status.FINISHED
 }
