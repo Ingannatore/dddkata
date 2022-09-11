@@ -49,4 +49,12 @@ class Sprint(
         endDate = LocalDate.now()
         status = Status.FINISHED
     }
+
+    fun addItem(item: BacklogItem, fpEstimation: Int): Long {
+        check(isNew()) { "Can only add items to Sprint before it starts" }
+        item.sprint = this
+        items.add(item)
+        item.fpEstimation = fpEstimation
+        return item.id!!
+    }
 }

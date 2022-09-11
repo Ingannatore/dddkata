@@ -55,13 +55,9 @@ class SprintService(
     /*****************************  ITEMS IN SPRINT  */
     @PostMapping("sprint/{sprintId}/item")
     fun addItem(@PathVariable sprintId: Long, @RequestBody request: AddBacklogItemRequest): Long {
-        val backlogItem = backlogItemRepository.findById(request.backlogId).orElseThrow { EntityNotFoundException("No ${BacklogItem::class.simpleName} with id " + request.backlogId) }
         val sprint = sprintRepository.findById(sprintId).orElseThrow { EntityNotFoundException("No ${Sprint::class.simpleName} with id " + sprintId) }
-        check(sprint.isNew()) { "Can only add items to Sprint before it starts" }
-        backlogItem.sprint = sprint
-        sprint.items.add(backlogItem)
-        backlogItem.fpEstimation = request.fpEstimation
-        return backlogItem.id!! // Hint: if you have JPA issues getting the new ID, consider using UUID instead of sequence
+        val backlogItem = backlogItemRepository.findById(request.backlogId).orElseThrow { EntityNotFoundException("No ${BacklogItem::class.simpleName} with id " + request.backlogId) }
+        return sprint.addItem(backlogItem, request.fpEstimation)
     }
 
     @PostMapping("sprint/{sprintId}/item/{backlogId}/start")
