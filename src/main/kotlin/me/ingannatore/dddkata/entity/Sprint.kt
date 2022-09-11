@@ -37,4 +37,16 @@ class Sprint(
     fun isNew(): Boolean = status == Status.CREATED
     fun isStarted(): Boolean = status == Status.STARTED
     fun isFinished(): Boolean = status == Status.FINISHED
+
+    fun start() {
+        check(isNew())
+        startDate = LocalDate.now()
+        status = Status.STARTED
+    }
+
+    fun end() {
+        check(isStarted())
+        endDate = LocalDate.now()
+        status = Status.FINISHED
+    }
 }

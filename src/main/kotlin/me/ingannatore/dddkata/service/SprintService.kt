@@ -12,7 +12,6 @@ import me.ingannatore.dddkata.repo.ProductRepository
 import me.ingannatore.dddkata.repo.SprintRepository
 import org.springframework.transaction.annotation.Transactional
 import org.springframework.web.bind.annotation.*
-import java.time.LocalDate
 import javax.persistence.EntityNotFoundException
 
 @Transactional
@@ -44,17 +43,13 @@ class SprintService(
     @PostMapping("sprint/{sprintId}/start")
     fun startSprint(@PathVariable sprintId: Long) {
         val sprint = sprintRepository.findById(sprintId).orElseThrow { EntityNotFoundException("No ${Sprint::class.simpleName} with id " + sprintId) }
-        check(sprint.isNew())
-        sprint.startDate = LocalDate.now()
-        sprint.status = Sprint.Status.STARTED
+        sprint.start()
     }
 
     @PostMapping("sprint/{sprintId}/end")
     fun endSprint(@PathVariable sprintId: Long) {
         val sprint = sprintRepository.findById(sprintId).orElseThrow { EntityNotFoundException("No ${Sprint::class.simpleName} with id " + sprintId) }
-        check(sprint.isStarted())
-        sprint.endDate = LocalDate.now()
-        sprint.status = Sprint.Status.FINISHED
+        sprint.end()
     }
 
     /*****************************  ITEMS IN SPRINT  */
