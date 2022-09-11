@@ -78,18 +78,10 @@ class SprintService(
         }
     }
 
-    private fun checkSprintMatchesAndStarted(id: Long, backlogItem: BacklogItem) {
-        require(backlogItem.sprint!!.id!! == id) { "item not in sprint" }
-        val sprint = sprintRepository.findById(id).orElseThrow { EntityNotFoundException("No ${Sprint::class.simpleName} with id " + id) }
-        check(sprint.isStarted()) { "Sprint not started" }
-    }
-
     @PostMapping("sprint/{sprintId}/log-hours")
     fun logHours(@PathVariable sprintId: Long, @RequestBody request: LogHoursRequest) {
-        val backlogItem = backlogItemRepository.findById(request.backlogId).orElseThrow { EntityNotFoundException("No ${BacklogItem::class.simpleName} with id " + request.backlogId) }
-        checkSprintMatchesAndStarted(sprintId, backlogItem)
-        check(backlogItem.isStarted()) { "Item not started" }
-        backlogItem.addHours(request.hours)
+        val sprint = sprintRepository.findById(sprintId).orElseThrow { EntityNotFoundException("No ${Sprint::class.simpleName} with id " + sprintId) }
+        sprint.logHours(request.backlogId, request.hours)
     }
 
     /*****************************  METRICS  */

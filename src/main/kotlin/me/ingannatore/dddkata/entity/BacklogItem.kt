@@ -45,8 +45,9 @@ class BacklogItem(
         status = Status.STARTED
     }
 
-    fun addHours(hours: Int) {
-        hoursConsumed += hours
+    fun logHours(amount: Int) {
+        check(isStarted()) { "Item not started" }
+        hoursConsumed += amount
     }
 
     fun complete() {

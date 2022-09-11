@@ -63,6 +63,11 @@ class Sprint(
         items.first { it.id == itemId }.start()
     }
 
+    fun logHours(itemId: Long, amount: Int) {
+        check(isStarted()) { "Sprint not started" }
+        items.first { it.id == itemId }.logHours(amount)
+    }
+
     fun completeItem(itemId: Long) {
         check(isStarted()) { "Sprint not started" }
         items.first { it.id == itemId }.complete()
