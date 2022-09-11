@@ -88,23 +88,6 @@ class SprintService(
     @GetMapping("sprint/{sprintId}/metrics")
     fun getSprintMetrics(@PathVariable sprintId: Long): SprintMetrics {
         val sprint = sprintRepository.findById(sprintId).orElseThrow { EntityNotFoundException("No ${Sprint::class.simpleName} with id " + sprintId) }
-        check(sprint.isFinished())
-        val doneItems: List<BacklogItem> = sprint.items
-            .filter { it.isDone() }
-        val consumedHours = sprint.items.sumOf { it.hoursConsumed }
-        val doneFP = doneItems.sumOf { it.fpEstimation ?: 0 }
-
-        return SprintMetrics(
-            consumedHours = consumedHours,
-            calendarDays = sprint.startDate!!.until(sprint.endDate).days,
-            doneFP = doneFP,
-            fpVelocity = 1.0 * doneFP / consumedHours,
-            hoursConsumedForNotDone = sprint.items
-                .filter { !it.isDone() }
-                .sumOf { it.hoursConsumed },
-            delayDays = if (sprint.endDate!!.isAfter(sprint.plannedEndDate))
-                sprint.plannedEndDate.until(sprint.endDate).days
-            else 0
-        )
+        return sprint.getMetrics()
     }
 }

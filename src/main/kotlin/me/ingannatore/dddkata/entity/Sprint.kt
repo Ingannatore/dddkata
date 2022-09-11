@@ -1,5 +1,6 @@
 package me.ingannatore.dddkata.entity
 
+import me.ingannatore.dddkata.dto.SprintMetrics
 import java.time.LocalDate
 import javax.persistence.*
 
@@ -33,10 +34,6 @@ class Sprint(
     enum class Status {
         CREATED, STARTED, FINISHED
     }
-
-    fun isNew(): Boolean = status == Status.CREATED
-    fun isStarted(): Boolean = status == Status.STARTED
-    fun isFinished(): Boolean = status == Status.FINISHED
 
     fun start() {
         check(isNew())
@@ -72,4 +69,31 @@ class Sprint(
         check(isStarted()) { "Sprint not started" }
         items.first { it.id == itemId }.complete()
     }
+
+    fun getMetrics(): SprintMetrics {
+        check(isFinished())
+        val totalConsumedHours = getTotalConsumedHours()
+        val totalFPDone = getTotalFPDone()
+
+        return SprintMetrics(
+            consumedHours = totalConsumedHours,
+            calendarDays = startDate!!.until(endDate).days,
+            doneFP = totalFPDone,
+            fpVelocity = 1.0 * totalFPDone / totalConsumedHours,
+            hoursConsumedForNotDone = getTotalConsumedHoursOnIncompleteItems(),
+            delayDays = getDelayInDays()
+        )
+    }
+
+    private fun isNew(): Boolean = status == Status.CREATED
+    private fun isStarted(): Boolean = status == Status.STARTED
+    private fun isFinished(): Boolean = status == Status.FINISHED
+    private fun getTotalConsumedHours(): Int = items.sumOf { it.hoursConsumed }
+    private fun getTotalConsumedHoursOnIncompleteItems(): Int = items.filter { !it.isDone() }.sumOf { it.hoursConsumed }
+    private fun getTotalFPDone(): Int = items.filter { it.isDone() }.sumOf { it.fpEstimation ?: 0 }
+    private fun getDelayInDays(): Int =
+        when {
+            endDate!!.isAfter(plannedEndDate) -> plannedEndDate.until(endDate).days
+            else -> 0
+        }
 }
