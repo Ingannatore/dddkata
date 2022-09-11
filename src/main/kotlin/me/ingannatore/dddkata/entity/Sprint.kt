@@ -62,4 +62,9 @@ class Sprint(
         check(isStarted()) { "Sprint not started" }
         items.first { it.id == itemId }.start()
     }
+
+    fun completeItem(itemId: Long) {
+        check(isStarted()) { "Sprint not started" }
+        items.first { it.id == itemId }.complete()
+    }
 }

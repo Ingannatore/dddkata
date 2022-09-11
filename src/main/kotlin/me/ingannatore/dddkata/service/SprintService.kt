@@ -68,11 +68,9 @@ class SprintService(
 
     @PostMapping("sprint/{sprintId}/item/{backlogId}/complete")
     fun completeItem(@PathVariable sprintId: Long, @PathVariable backlogId: Long) {
-        val backlogItem = backlogItemRepository.findById(backlogId).orElseThrow { EntityNotFoundException("No ${BacklogItem::class.simpleName} with id " + backlogId) }
-        checkSprintMatchesAndStarted(sprintId, backlogItem)
-        check(backlogItem.isStarted()) { "Cannot complete an Item before starting it" }
-        backlogItem.status = BacklogItem.Status.DONE
         val sprint = sprintRepository.findById(sprintId).orElseThrow { EntityNotFoundException("No ${Sprint::class.simpleName} with id " + sprintId) }
+        sprint.completeItem(backlogId)
+
         if (sprint.items.all { it.isDone() }) {
             println("Sending CONGRATS email to team of product " + sprint.product!!.code + ": They finished the items earlier. They have time to refactor! (OMG!)")
             val emails = mailingListClient.retrieveEmails(sprint.product!!.teamMailingList)

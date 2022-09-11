@@ -48,4 +48,9 @@ class BacklogItem(
     fun addHours(hours: Int) {
         hoursConsumed += hours
     }
+
+    fun complete() {
+        check(isStarted()) { "Cannot complete an Item before starting it" }
+        status = Status.DONE
+    }
 }
