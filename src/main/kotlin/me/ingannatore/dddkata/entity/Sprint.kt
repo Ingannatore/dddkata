@@ -85,6 +85,7 @@ class Sprint(
         )
     }
 
+    fun isFulfilled(): Boolean = items.all { it.isDone() }
     private fun isNew(): Boolean = status == Status.CREATED
     private fun isStarted(): Boolean = status == Status.STARTED
     private fun isFinished(): Boolean = status == Status.FINISHED

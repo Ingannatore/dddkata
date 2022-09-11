@@ -7,9 +7,11 @@ import me.ingannatore.dddkata.dto.SprintMetrics
 import me.ingannatore.dddkata.entity.BacklogItem
 import me.ingannatore.dddkata.entity.Product
 import me.ingannatore.dddkata.entity.Sprint
+import me.ingannatore.dddkata.event.SprintCompletedEvent
 import me.ingannatore.dddkata.repo.BacklogItemRepository
 import me.ingannatore.dddkata.repo.ProductRepository
 import me.ingannatore.dddkata.repo.SprintRepository
+import org.springframework.context.ApplicationEventPublisher
 import org.springframework.transaction.annotation.Transactional
 import org.springframework.web.bind.annotation.*
 import javax.persistence.EntityNotFoundException
@@ -20,8 +22,7 @@ class SprintService(
     private val sprintRepository: SprintRepository,
     private val productRepository: ProductRepository,
     private val backlogItemRepository: BacklogItemRepository,
-    private val emailService: EmailService,
-    private val mailingListClient: MailingListClient,
+    private val eventPublisher: ApplicationEventPublisher,
 ) {
     @PostMapping("sprint")
     fun createSprint(@RequestBody dto: CreateSprintRequest): Long {
@@ -66,11 +67,7 @@ class SprintService(
         val sprint = getSprintById(sprintId)
         sprint.completeItem(backlogId)
 
-        if (sprint.items.all { it.isDone() }) {
-            println("Sending CONGRATS email to team of product " + sprint.product!!.code + ": They finished the items earlier. They have time to refactor! (OMG!)")
-            val emails = mailingListClient.retrieveEmails(sprint.product!!.teamMailingList)
-            emailService.sendCongratsEmail(emails)
-        }
+        eventPublisher.publishEvent(SprintCompletedEvent(sprintId))
     }
 
     @PostMapping("sprint/{sprintId}/log-hours")
