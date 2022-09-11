@@ -68,7 +68,7 @@ class SprintService(
     fun startItem(@PathVariable sprintId: Long, @PathVariable backlogId: Long) {
         val backlogItem = backlogItemRepository.findById(backlogId).orElseThrow { EntityNotFoundException("No ${BacklogItem::class.simpleName} with id " + backlogId) }
         checkSprintMatchesAndStarted(sprintId, backlogItem)
-        check(!(backlogItem.status != BacklogItem.Status.CREATED)) { "Item already started" }
+        check(backlogItem.isNew()) { "Item already started" }
         backlogItem.status = BacklogItem.Status.STARTED
     }
 
@@ -76,10 +76,10 @@ class SprintService(
     fun completeItem(@PathVariable sprintId: Long, @PathVariable backlogId: Long) {
         val backlogItem = backlogItemRepository.findById(backlogId).orElseThrow { EntityNotFoundException("No ${BacklogItem::class.simpleName} with id " + backlogId) }
         checkSprintMatchesAndStarted(sprintId, backlogItem)
-        check(!(backlogItem.status != BacklogItem.Status.STARTED)) { "Cannot complete an Item before starting it" }
+        check(backlogItem.isStarted()) { "Cannot complete an Item before starting it" }
         backlogItem.status = BacklogItem.Status.DONE
         val sprint = sprintRepository.findById(sprintId).orElseThrow { EntityNotFoundException("No ${Sprint::class.simpleName} with id " + sprintId) }
-        if (sprint.items.all { it.status == BacklogItem.Status.DONE }) {
+        if (sprint.items.all { it.isDone() }) {
             println("Sending CONGRATS email to team of product " + sprint.product!!.code + ": They finished the items earlier. They have time to refactor! (OMG!)")
             val emails = mailingListClient.retrieveEmails(sprint.product!!.teamMailingList)
             emailService.sendCongratsEmail(emails)
@@ -96,7 +96,7 @@ class SprintService(
     fun logHours(@PathVariable sprintId: Long, @RequestBody request: LogHoursRequest) {
         val backlogItem = backlogItemRepository.findById(request.backlogId).orElseThrow { EntityNotFoundException("No ${BacklogItem::class.simpleName} with id " + request.backlogId) }
         checkSprintMatchesAndStarted(sprintId, backlogItem)
-        check(!(backlogItem.status !== BacklogItem.Status.STARTED)) { "Item not started" }
+        check(backlogItem.isStarted()) { "Item not started" }
         backlogItem.addHours(request.hours)
     }
 
@@ -106,7 +106,7 @@ class SprintService(
         val sprint = sprintRepository.findById(sprintId).orElseThrow { EntityNotFoundException("No ${Sprint::class.simpleName} with id " + sprintId) }
         check(sprint.isFinished())
         val doneItems: List<BacklogItem> = sprint.items
-            .filter { it.status === BacklogItem.Status.DONE }
+            .filter { it.isDone() }
         val consumedHours = sprint.items.sumOf { it.hoursConsumed }
         val doneFP = doneItems.sumOf { it.fpEstimation ?: 0 }
 
@@ -116,7 +116,7 @@ class SprintService(
             doneFP = doneFP,
             fpVelocity = 1.0 * doneFP / consumedHours,
             hoursConsumedForNotDone = sprint.items
-                .filter { it.status !== BacklogItem.Status.DONE }
+                .filter { !it.isDone() }
                 .sumOf { it.hoursConsumed },
             delayDays = if (sprint.endDate!!.isAfter(sprint.plannedEndDate))
                 sprint.plannedEndDate.until(sprint.endDate).days

@@ -36,6 +36,10 @@ class BacklogItem(
         CREATED, STARTED, DONE
     }
 
+    fun isNew(): Boolean = status == BacklogItem.Status.CREATED
+    fun isStarted(): Boolean = status == BacklogItem.Status.STARTED
+    fun isDone(): Boolean = status == BacklogItem.Status.DONE
+
     fun addHours(hours: Int) {
         hoursConsumed += hours
     }
