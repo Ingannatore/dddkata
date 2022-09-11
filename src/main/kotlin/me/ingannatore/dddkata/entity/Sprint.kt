@@ -57,4 +57,9 @@ class Sprint(
         item.fpEstimation = fpEstimation
         return item.id!!
     }
+
+    fun startItem(itemId: Long) {
+        check(isStarted()) { "Sprint not started" }
+        items.first { it.id == itemId }.start()
+    }
 }

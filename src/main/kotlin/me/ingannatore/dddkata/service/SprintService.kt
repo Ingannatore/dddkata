@@ -62,10 +62,8 @@ class SprintService(
 
     @PostMapping("sprint/{sprintId}/item/{backlogId}/start")
     fun startItem(@PathVariable sprintId: Long, @PathVariable backlogId: Long) {
-        val backlogItem = backlogItemRepository.findById(backlogId).orElseThrow { EntityNotFoundException("No ${BacklogItem::class.simpleName} with id " + backlogId) }
-        checkSprintMatchesAndStarted(sprintId, backlogItem)
-        check(backlogItem.isNew()) { "Item already started" }
-        backlogItem.status = BacklogItem.Status.STARTED
+        val sprint = sprintRepository.findById(sprintId).orElseThrow { EntityNotFoundException("No ${Sprint::class.simpleName} with id " + sprintId) }
+        sprint.startItem(backlogId)
     }
 
     @PostMapping("sprint/{sprintId}/item/{backlogId}/complete")
