@@ -23,18 +23,19 @@ class ReleaseService(
     @PostMapping("product/{productId}/release/{sprintId}")
     fun createRelease(@PathVariable productId: Long, @PathVariable sprintId: Long): Release {
         val product = productRepository.findById(productId).orElseThrow { EntityNotFoundException("No ${Product::class.simpleName} with id " + productId) }
-        val sprint = sprintRepository.findById(sprintId).orElseThrow { EntityNotFoundException("No ${Sprint::class.simpleName} with id " + sprintId) }
+        val currentSprint = sprintRepository.findById(sprintId).orElseThrow { EntityNotFoundException("No ${Sprint::class.simpleName} with id " + sprintId) }
+        val productSprints = sprintRepository.findByProductId(productId)
         val previouslyReleasedIteration = product.releases
             .map { it.sprint }
             .maxOfOrNull { it.iteration } ?: 0
-        val releasedIteration = sprint.iteration
-        val releasedItems = product.sprints
+        val releasedIteration = currentSprint.iteration
+        val releasedItems = productSprints
             .sortedBy { it.iteration }
             .filter { s -> (s.iteration in (previouslyReleasedIteration + 1)..releasedIteration) }
             .flatMap { s -> s.items }
         val release = Release(
             product = product,
-            sprint = sprint,
+            sprint = currentSprint,
             releasedItems = releasedItems,
             date = LocalDate.now(),
             version = "${product.incrementAndGetVersion()}.0"

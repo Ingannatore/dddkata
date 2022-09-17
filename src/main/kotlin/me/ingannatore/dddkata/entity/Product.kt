@@ -33,9 +33,6 @@ class Product(
     var teamMailingList: String,
 
     @OneToMany(mappedBy = "product")
-    var sprints: List<Sprint> = emptyList(),
-
-    @OneToMany(mappedBy = "product")
     var releases: MutableList<Release> = mutableListOf(),
 ) {
     fun incrementAndGetIteration(): Int {

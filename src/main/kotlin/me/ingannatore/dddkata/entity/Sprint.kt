@@ -11,10 +11,10 @@ class Sprint(
     val id: Long? = null,
 
     @Column
-    val iteration: Int,
+    val productId: Long,
 
-    @ManyToOne
-    val product: Product,
+    @Column
+    val iteration: Int,
 
     @Column
     val plannedEndDate: LocalDate,

@@ -28,7 +28,7 @@ class SprintService(
     fun createSprint(@RequestBody dto: CreateSprintRequest): Long {
         val product = getProductById(dto.productId)
         val sprint = Sprint(
-            product = product,
+            productId = dto.productId,
             iteration = product.incrementAndGetIteration(),
             plannedEndDate = dto.plannedEnd,
         )
