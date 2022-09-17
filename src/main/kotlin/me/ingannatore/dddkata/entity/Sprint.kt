@@ -8,29 +8,32 @@ import javax.persistence.*
 class Sprint(
     @Id
     @GeneratedValue
-    var id: Long? = null,
+    val id: Long? = null,
 
     @Column
-    var iteration: Int = 0,
+    val iteration: Int,
 
     @ManyToOne
-    var product: Product? = null,
+    val product: Product,
 
     @Column
-    var startDate: LocalDate? = null,
-
-    @Column
-    var plannedEndDate: LocalDate,
-
-    @Column
-    var endDate: LocalDate? = null,
-
+    val plannedEndDate: LocalDate,
+) {
     @Enumerated(EnumType.STRING)
-    var status: Status = Status.CREATED,
+    var status: Status = Status.CREATED
+        private set
+
+    @Column
+    var startDate: LocalDate? = null
+        private set
+
+    @Column
+    var endDate: LocalDate? = null
+        private set
 
     @OneToMany(mappedBy = "sprint")
-    var items: MutableList<BacklogItem> = mutableListOf(),
-) {
+    val items: MutableList<BacklogItem> = mutableListOf()
+
     enum class Status {
         CREATED, STARTED, FINISHED
     }

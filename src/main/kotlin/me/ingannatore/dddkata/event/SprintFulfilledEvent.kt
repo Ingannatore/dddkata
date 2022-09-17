@@ -1,5 +1,5 @@
 package me.ingannatore.dddkata.event
 
-class SprintCompletedEvent(
+class SprintFulfilledEvent(
     val sprintId: Long,
 )

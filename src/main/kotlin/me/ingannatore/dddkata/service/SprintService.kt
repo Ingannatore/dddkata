@@ -7,7 +7,7 @@ import me.ingannatore.dddkata.dto.SprintMetrics
 import me.ingannatore.dddkata.entity.BacklogItem
 import me.ingannatore.dddkata.entity.Product
 import me.ingannatore.dddkata.entity.Sprint
-import me.ingannatore.dddkata.event.SprintCompletedEvent
+import me.ingannatore.dddkata.event.SprintFulfilledEvent
 import me.ingannatore.dddkata.repo.BacklogItemRepository
 import me.ingannatore.dddkata.repo.ProductRepository
 import me.ingannatore.dddkata.repo.SprintRepository
@@ -67,7 +67,9 @@ class SprintService(
         val sprint = getSprintById(sprintId)
         sprint.completeItem(backlogId)
 
-        eventPublisher.publishEvent(SprintCompletedEvent(sprintId))
+        if (sprint.isFulfilled()) {
+            eventPublisher.publishEvent(SprintFulfilledEvent(sprintId))
+        }
     }
 
     @PostMapping("sprint/{sprintId}/log-hours")

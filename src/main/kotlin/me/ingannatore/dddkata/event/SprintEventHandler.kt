@@ -15,13 +15,13 @@ class SprintEventHandler(
     private val mailingListClient: MailingListClient,
 ) {
     @EventListener
-    fun handleSprintCompletedEvent(event: SprintCompletedEvent) {
+    fun handleSprintFulfilledEvent(event: SprintFulfilledEvent) {
         val sprint = getSprintById(event.sprintId)
-        if (sprint.isFulfilled()) {
-            println("Sending CONGRATS email to team of product " + sprint.product!!.code + ": They finished the items earlier. They have time to refactor! (OMG!)")
-            val emails = mailingListClient.retrieveEmails(sprint.product!!.teamMailingList)
-            emailService.sendCongratsEmail(emails)
-        }
+
+        println("Sending CONGRATS email to team of product ${sprint.product.code}: They finished the items earlier. They have time to refactor! (OMG!)")
+
+        val emails = mailingListClient.retrieveEmails(sprint.product.teamMailingList)
+        emailService.sendCongratsEmail(emails)
     }
 
     private fun getSprintById(id: Long): Sprint =
